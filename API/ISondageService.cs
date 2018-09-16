@@ -10,7 +10,7 @@ namespace USherbrooke.ServiceModel.Sondage
     /// Interface décrivant le service de sondage.
     /// </summary>
     [ServiceContract(Namespace = "http://USherbrooke.ServiceModel.Sondage")]
-    interface ISondageService
+    public interface ISondageService
     {
         /// <summary>
         /// Effectue une connexion au système de sondage, puis retourne l'identifiant de l'utilisateur qui devra être utilisé pour répondre aux questions.
