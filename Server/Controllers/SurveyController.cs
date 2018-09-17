@@ -2,27 +2,42 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using USherbrooke.ServiceModel.Sondage;
 
 namespace Server.Controllers
 {
+    public class Credentials
+    {
+        public String username;
+        public String password;
+          
+    }
     [Route("api")]
     [ApiController]
     public class SurveyController : ControllerBase
     {
-        private readonly ISondageService _services;
+        private readonly ISondageService _sondageServices;
         public SurveyController(ISondageService services)
         {
-            _services = services;
+            _sondageServices = services;
+        }
+
+        [HttpPost]
+        [Route("Connect")]
+        public int Connect([FromBody]Credentials credentials)
+        {
+            return _sondageServices.Connect(credentials.username, credentials.password);
         }
 
         [HttpGet]
         [Route("GetAvailablePolls")]
-        public IList<Poll> GetAvailablePolls(int userId)
+        public IList<Poll> GetAvailablePolls([FromQuery]int userId)
         {
-            var availablePolls = _services.GetAvailablePolls(1);
+            // Implementer quelque chose dans le cas ou le userId est invalide... car ca fait en sorte que availablePolls est null
+            var availablePolls = _sondageServices.GetAvailablePolls(userId);
 
             if(availablePolls.Count <= 0)
             {
@@ -31,15 +46,11 @@ namespace Server.Controllers
             return availablePolls;
         }
 
-        
-        public PollQuestion GetNext(int userId, PollQuestion answer)
+        [HttpPost]
+        [Route("GetNext")]
+        public PollQuestion GetNext([FromQuery]int userId, [FromBody]PollQuestion answer)
         {
-            var nextQuestion = _services.GetNext(1, new PollQuestion());
-
-            if(nextQuestion == null)
-            {
-                //Cest la premiere question selon ISondageService...
-            }
+            var nextQuestion = _sondageServices.GetNext(userId, answer);
             return nextQuestion;
         }
     }

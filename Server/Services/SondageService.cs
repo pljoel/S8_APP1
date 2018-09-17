@@ -5,31 +5,142 @@ using USherbrooke.ServiceModel.Sondage;
 
 namespace Server.Services
 {
-    public class SondageService : ISondageService
+    // Classe utilisateur de sondages
+    public class User
     {
-        private readonly SondageDAO _sondageDAO;
+        private String username;
+        private String password;
+        private int userId;
+        private DateTime expire;
 
-        public SondageService()
+        public User(String u, String p, int uid)
         {
-            _sondageDAO = new SondageDAO();
+            username = u;
+            password = p;
+            userId = uid;
+            expire = new DateTime();
         }
 
-        public int Connect()
+        public String getUsername()
         {
-            throw new NotImplementedException();
+            return username;
+        }
+
+        public int getUserId()
+        {
+            return userId;
+        }
+
+        public String getPassword()
+        {
+            return password;
+        }
+
+        public bool getActive()
+        {
+            return expire > DateTime.Now;
+        }
+
+        // Active le user pour 30 min
+        public void setActive()
+        {
+            expire = DateTime.Now.AddMinutes(30);
+        }
+    }// Utilisateur
+
+    public class SondageService : ISondageService
+    {
+        private readonly SimpleSondageDAO _simpleSondageDAO;
+        private readonly Dictionary<String, User> _users;
+        private Dictionary<int, String> _usersValidation;
+
+        // Constructeur
+        public SondageService()
+        {
+            _simpleSondageDAO = new SimpleSondageDAO();
+            _users = new Dictionary<String, User>();
+            _usersValidation = new Dictionary<int, String>();
+
+            // Creation des users
+            User user1 = new User("admin", "admin", 999);
+            _users.Add(user1.getUsername(), user1);
+            // Link le userId et son username
+            _usersValidation.Add(user1.getUserId(), user1.getUsername());
+        }
+
+        public int Connect(String username, String password)
+        {
+            if (_users.ContainsKey(username))
+            {
+                if (_users[username].getUsername() == username && _users[username].getPassword() == password)
+                {
+                    // Met le user actif pour 30 min
+                    _users[username].setActive();
+                    return _users[username].getUserId();
+                }
+                return -1; //On devrait lancer une exception
+            }
+            return -1; // Invalide, lance une exception
         }
 
         public IList<Poll> GetAvailablePolls(int userId)
         {
-            // TODO: use the userID
-            return _sondageDAO.GetAvailablePolls();
+            // Regarde si le userId est valide et connecter...
+            if (validateUserActive(userId))
+            {
+                return _simpleSondageDAO.GetAvailablePolls();
+            }
+            return null; // Lance exception que le user n'est pas valide
         }
 
         public PollQuestion GetNext(int userId, PollQuestion answer)
         {
-            int pollid = 1;
-            int currentQuestionID = 11;
-            return _sondageDAO.GetNextQuestion(pollid, currentQuestionID);
+            if (validateUserActive(userId))
+            {
+                if (answer != null)
+                {
+                    if (answer.PollId >= 1 && answer.QuestionId >= 11 && answer.Text != null)
+                    {
+                        // Sanitise la reponse avant d'etre process
+                        if (answer.Text.Equals("a") || answer.Text.Equals("b") || answer.Text.Equals("c"))
+                        {
+                            _simpleSondageDAO.SaveAnswer(userId, answer);
+                            return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId);
+                        }
+                        else
+                        {
+                            //Mauvais data, on recommence la question.
+                            return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId - 1);
+                        }
+                    }
+                }
+                return null; // Lance exception car answer nest pas valide
+            }
+
+            return null; // Lance Exception que le user n'est pas valide
+
+            return _simpleSondageDAO.GetNextQuestion(1, -1);
+
+        }
+        
+        //
+        // Notre propre implementation, Non dans l'interface //
+        //
+        private bool validateUserActive(int userId)
+        {
+            // Validate that the userId exist...
+            if (_usersValidation.ContainsKey(userId))
+            {
+                // Le user existe
+                return _users[_usersValidation[userId]].getActive();
+            }
+            return false;
+        }
+
+        private bool validatePollId(int pid)
+        {
+            
+            return false;
         }
     }
 }
