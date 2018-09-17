@@ -17,7 +17,7 @@ namespace USherbrooke.ServiceModel.Sondage
         /// </summary>
         /// <returns>L'identifiant de l'utilisateur.</returns>
         [OperationContract]
-        int Connect();
+        int Connect(String username, String password);
 
         /// <summary>
         /// Liste les sondages disponibles.
@@ -29,7 +29,7 @@ namespace USherbrooke.ServiceModel.Sondage
 
         /// <summary>
         /// En fonction de la réponse à la question courante, retourne la prochaine question pour le sondage en cours. Si la réponse est invalide, la même question est retournée.
-        /// Pour aller chercher la première réponse du sondate, answer doit être null.
+        /// Pour aller chercher la première réponse du sondage, questionId de answer doit être null.
         /// </summary>
         /// <param name="userId">L'identifiant de l'utilisateur courant.</param>
         /// <param name="answer">La réponse à la question courante, ou null pour obtenir la première question.</param>
