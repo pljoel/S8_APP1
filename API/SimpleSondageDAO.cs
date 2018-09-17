@@ -152,5 +152,17 @@ namespace USherbrooke.ServiceModel.Sondage
                 answeredPolls.Add(question.PollId, pollAnswers);
             }
         }
+
+
+
+        /// <summary>
+        /// Retourne les numeros de questions disponibles pour un # de sondage.
+        /// </summary>
+        /// <param name="pollId">Le numero du poll</param>
+        /// <exception cref="InvalidIdException">Cette exception sera lancée si l'un des identifiants fournis au DAO est invalide</exception>
+        public List<int> GetQuestionList(int pollId)
+        {
+            return null;
+        }
     }
 }
