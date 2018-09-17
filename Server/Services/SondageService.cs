@@ -99,39 +99,47 @@ namespace Server.Services
             {
                 if (answer != null)
                 {
-                    if (answer.PollId >= 1 && answer.QuestionId >= 11 && answer.Text != null)
+                    if (validatePollId(answer.PollId) && validateQuestionId(answer.PollId, answer.QuestionId))
                     {
-                        // Sanitise la reponse avant d'etre process
-                        if (answer.Text.Equals("a") || answer.Text.Equals("b") || answer.Text.Equals("c"))
+                        // On veut la premiere question du sondage, donc -1
+                        if (answer.QuestionId == 1)
                         {
-                            _simpleSondageDAO.SaveAnswer(userId, answer);
-                            return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId);
+                            return _simpleSondageDAO.GetNextQuestion(answer.PollId, -1);
                         }
-                        else
+
+                        if (answer.Text != null)
                         {
-                            //Mauvais data, on recommence la question.
-                            return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId - 1);
+                            // Sanitise la reponse avant d'etre process
+                            if (answer.Text.Equals("a") || answer.Text.Equals("b") || answer.Text.Equals("c"))
+                            {
+                                _simpleSondageDAO.SaveAnswer(userId, answer);
+                                return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId);
+                            }
+                            else
+                            {
+                                //Mauvais data, on recommence la question.
+                                return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId - 1);
+                            }
                         }
+                        return null; // Lance exception car answer.Text ne contient pas une reponse attendue
                     }
                 }
                 return null; // Lance exception car answer nest pas valide
             }
-
             return null; // Lance Exception que le user n'est pas valide
-
-            return _simpleSondageDAO.GetNextQuestion(1, -1);
 
         }
         
+
         //
         // Notre propre implementation, Non dans l'interface //
         //
         private bool validateUserActive(int userId)
         {
-            // Validate that the userId exist...
+            // Valide que le userId existe
             if (_usersValidation.ContainsKey(userId))
             {
-                // Le user existe
+                // Retourne sil est actif ou non
                 return _users[_usersValidation[userId]].getActive();
             }
             return false;
@@ -139,7 +147,27 @@ namespace Server.Services
 
         private bool validatePollId(int pid)
         {
-            
+            foreach(Poll poll in _simpleSondageDAO.GetAvailablePolls())
+            {
+                if (poll.Id.Equals(pid))
+                    return true;
+            }
+            return false; // pollId n'est pas valide
+        }
+
+        private bool validateQuestionId(int pid, int qid)
+        {
+            if (validatePollId(pid))
+            {
+                if (qid == -1)
+                    return true;
+
+                foreach (Poll poll in _simpleSondageDAO.GetAvailablePolls())
+                {
+
+                }
+                return true;
+            }
             return false;
         }
     }
