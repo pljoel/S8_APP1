@@ -63,7 +63,7 @@ namespace Server.Services
             _usersValidation = new Dictionary<int, String>();
 
             // Creation des users
-            User user1 = new User("admin", "admin", 999);
+            User user1 = new User("admin", "YWRtaW4=", 999);
             _users.Add(user1.getUsername(), user1);
             // Link le userId et son username
             _usersValidation.Add(user1.getUserId(), user1.getUsername());

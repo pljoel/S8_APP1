@@ -113,11 +113,13 @@ namespace Client
             }
 
             Console.WriteLine("Password : ");
-            pass = Console.ReadLine();
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(Console.ReadLine());
+            pass = System.Convert.ToBase64String(plainTextBytes);
             while (pass.Length <= 0)
             {
                 Console.WriteLine("Please enter a valid password : ");
-                pass = Console.ReadLine();
+                plainTextBytes = System.Text.Encoding.UTF8.GetBytes(Console.ReadLine());
+                pass= System.Convert.ToBase64String(plainTextBytes);
             }
 
             return new Auth
