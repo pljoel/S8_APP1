@@ -37,22 +37,14 @@ namespace Server.Controllers
         [Route("GetAvailablePolls")]
         public IList<Poll> GetAvailablePolls([FromQuery]int userId)
         {
-            // Implementer quelque chose dans le cas ou le userId est invalide... car ca fait en sorte que availablePolls est null
-            var availablePolls = _sondageServices.GetAvailablePolls(userId);
-
-            if(availablePolls.Count <= 0)
-            {
-                throw new Exception();
-            }
-            return availablePolls;
+            return _sondageServices.GetAvailablePolls(userId);
         }
 
         [HttpPost]
         [Route("GetNext")]
         public PollQuestion GetNext([FromQuery]int userId, [FromBody]PollQuestion answer)
         {
-            var nextQuestion = _sondageServices.GetNext(userId, answer);
-            return nextQuestion;
+            return _sondageServices.GetNext(userId, answer);
         }
     }
 }
