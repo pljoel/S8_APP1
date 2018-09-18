@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Server.Services;
 using USherbrooke.ServiceModel.Sondage;
 
@@ -31,7 +32,7 @@ namespace Server
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -41,7 +42,9 @@ namespace Server
             {
                 app.UseHsts();
             }
-            
+
+            //loggerFactory.AddDebug();
+
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseMvc();
