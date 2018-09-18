@@ -102,7 +102,7 @@ namespace Server.Services
                     if (validatePollId(answer.PollId) && validateQuestionId(answer.PollId, answer.QuestionId))
                     {
                         // On veut la premiere question du sondage, donc -1
-                        if (answer.QuestionId == 1)
+                        if (answer.QuestionId == -1)
                         {
                             return _simpleSondageDAO.GetNextQuestion(answer.PollId, -1);
                         }
@@ -110,7 +110,7 @@ namespace Server.Services
                         if (answer.Text != null)
                         {
                             // Sanitise la reponse avant d'etre process
-                            if (answer.Text.Equals("a") || answer.Text.Equals("b") || answer.Text.Equals("c"))
+                            if (answer.Text.Equals("a") || answer.Text.Equals("b") || answer.Text.Equals("c") || answer.Text.Equals("d"))
                             {
                                 _simpleSondageDAO.SaveAnswer(userId, answer);
                                 return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId);
@@ -127,7 +127,6 @@ namespace Server.Services
                 return null; // Lance exception car answer nest pas valide
             }
             return null; // Lance Exception que le user n'est pas valide
-
         }
         
 
@@ -159,14 +158,8 @@ namespace Server.Services
         {
             if (validatePollId(pid))
             {
-                if (qid == -1)
+                if (_simpleSondageDAO.GetAvailableQuestions(pid).Contains(qid))
                     return true;
-
-                foreach (Poll poll in _simpleSondageDAO.GetAvailablePolls())
-                {
-
-                }
-                return true;
             }
             return false;
         }
