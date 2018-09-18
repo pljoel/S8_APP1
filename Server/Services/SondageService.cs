@@ -53,6 +53,7 @@ namespace Server.Services
         private readonly SimpleSondageDAO _simpleSondageDAO;
         private readonly Dictionary<String, User> _users;
         private Dictionary<int, String> _usersValidation;
+        
 
         // Constructeur
         public SondageService()
