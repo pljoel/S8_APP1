@@ -79,55 +79,76 @@ namespace Server.Services
                     _users[username].setActive();
                     return _users[username].getUserId();
                 }
-                return -1; //On devrait lancer une exception
+                return -1; //User/Password invalide...
             }
-            return -1; // Invalide, lance une exception
+            return -1; // Le username n'existe pas...
         }
 
         public IList<Poll> GetAvailablePolls(int userId)
         {
-            // Regarde si le userId est valide et connecter...
-            if (validateUserActive(userId))
-            {
-                return _simpleSondageDAO.GetAvailablePolls();
+            try {
+                // Regarde si le userId est valide et connecter...
+                if (validateUserActive(userId))
+                {
+                    return _simpleSondageDAO.GetAvailablePolls();
+                }
+                return null; // User id invalide ou non-connecter
             }
-            return null; // Lance exception que le user n'est pas valide
+            catch (Exception e) when (e is PersistenceException)
+            {
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+                return null;
+            }
         }
 
         public PollQuestion GetNext(int userId, PollQuestion answer)
         {
-            if (validateUserActive(userId))
+            try
             {
-                if (answer != null)
+                if (validateUserActive(userId))
                 {
-                    if (validatePollId(answer.PollId) && validateQuestionId(answer.PollId, answer.QuestionId))
+                    if (answer != null)
                     {
-                        // On veut la premiere question du sondage, donc -1
-                        if (answer.QuestionId == -1)
+                        if (validatePollId(answer.PollId) && validateQuestionId(answer.PollId, answer.QuestionId))
                         {
-                            return _simpleSondageDAO.GetNextQuestion(answer.PollId, -1);
-                        }
+                            // On veut la premiere question du sondage, donc -1
+                            if (answer.QuestionId == -1)
+                            {
+                                return _simpleSondageDAO.GetNextQuestion(answer.PollId, -1);
+                            }
 
-                        if (answer.Text != null)
-                        {
-                            // Sanitise la reponse avant d'etre process
-                            if (answer.Text.Equals("a") || answer.Text.Equals("b") || answer.Text.Equals("c") || answer.Text.Equals("d"))
+                            if (answer.Text != null)
                             {
-                                _simpleSondageDAO.SaveAnswer(userId, answer);
-                                return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId);
+                                // Sanitise la reponse avant d'etre process
+                                if (answer.Text.Equals("a") || answer.Text.Equals("b") || answer.Text.Equals("c") || answer.Text.Equals("d"))
+                                {
+                                    _simpleSondageDAO.SaveAnswer(userId, answer);
+                                    return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId);
+                                }
+                                else
+                                {
+                                    //Mauvais data, on recommence la question.
+                                    return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId - 1);
+                                }
                             }
-                            else
-                            {
-                                //Mauvais data, on recommence la question.
-                                return _simpleSondageDAO.GetNextQuestion(answer.PollId, answer.QuestionId - 1);
-                            }
+                            return null; // Lance exception car answer.Text ne contient pas une reponse attendue
                         }
-                        return null; // Lance exception car answer.Text ne contient pas une reponse attendue
                     }
+                    return null; // Lance exception car answer nest pas valide
                 }
-                return null; // Lance exception car answer nest pas valide
+                return null; // Lance Exception que le user n'est pas valide
             }
-            return null; // Lance Exception que le user n'est pas valide
+            catch (Exception e) when (e is PersistenceException)
+            {
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+                return null;
+            }
+            catch(Exception e) when (e is InvalidIdException)
+            {
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+                return null;
+            }
+            
         }
         
 
@@ -147,22 +168,38 @@ namespace Server.Services
 
         private bool validatePollId(int pid)
         {
-            foreach(Poll poll in _simpleSondageDAO.GetAvailablePolls())
+            try
             {
-                if (poll.Id.Equals(pid))
-                    return true;
+                foreach (Poll poll in _simpleSondageDAO.GetAvailablePolls())
+                {
+                    if (poll.Id.Equals(pid))
+                        return true;
+                }
+                return false; // pollId n'est pas valide
             }
-            return false; // pollId n'est pas valide
+            catch (Exception e) when (e is PersistenceException)
+            {
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+                return false;
+            }
         }
 
         private bool validateQuestionId(int pid, int qid)
         {
-            if (validatePollId(pid))
+            try
             {
-                if (_simpleSondageDAO.GetAvailableQuestions(pid).Contains(qid))
-                    return true;
+                if (validatePollId(pid))
+                {
+                    if (_simpleSondageDAO.GetAvailableQuestions(pid).Contains(qid) || qid == -1)
+                        return true;
+                }
+                return false;
             }
-            return false;
+            catch (Exception e) when (e is PersistenceException)
+            {
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+                return false;
+            }
         }
     }
 }

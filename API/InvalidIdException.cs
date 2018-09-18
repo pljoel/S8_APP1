@@ -10,7 +10,7 @@ namespace USherbrooke.ServiceModel.Sondage
     /// Exception lancée lorsque l'identifiant fourni à la couche de persistence n'est pas valide.
     /// </summary>
     [Serializable()]
-    class InvalidIdException : PersistenceException
+    public class InvalidIdException : PersistenceException
     {
         public InvalidIdException() 
             : base()

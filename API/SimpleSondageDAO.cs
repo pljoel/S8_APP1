@@ -57,6 +57,8 @@ namespace USherbrooke.ServiceModel.Sondage
         /// <exception cref="PersistenceException">Cette exception sera lancée si le DAO est incapable de communiquer avec le médium de stockage pour lire les sondages disponibles</exception>
         public IList<Poll> GetAvailablePolls()
         {
+            if (pollDescriptions == null)
+                throw new PersistenceException("Unable to return an initialized poll list...");
             return pollDescriptions;
         }
 
@@ -71,24 +73,31 @@ namespace USherbrooke.ServiceModel.Sondage
         public PollQuestion GetNextQuestion(int pollId, int currentQuestionId)
         {
             IList<PollQuestion> questions = new List<PollQuestion>();
-            if (availablePolls.TryGetValue(pollId, out questions) && questions.Count > 0)
+
+            if (availablePolls == null)
+                throw new PersistenceException("Unable to return an initialized poll questions list...");
+
+            else if (availablePolls.TryGetValue(pollId, out questions) && questions.Count > 0)
             {
                 // if there is no previous question id, returning the first question
-                if (currentQuestionId == NO_AVAILABLE_ID)
+                if (currentQuestionId >= -1)
                 {
-                    return questions[0];
-                }
-
-                // looking for the current question, so that we can return the next one
-                int count = questions.Count;
-                for (int i = 0; i < count; i++)
-                {
-                    if (questions[i].QuestionId == currentQuestionId && count > i + 1)
+                    if (currentQuestionId == NO_AVAILABLE_ID)
                     {
-                        return questions[i + 1];
+                        return questions[0];
+                    }
+
+                    // looking for the current question, so that we can return the next one
+                    int count = questions.Count;
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (questions[i].QuestionId == currentQuestionId && count > i + 1)
+                        {
+                            return questions[i + 1];
+                        }
                     }
                 }
-
+                throw new InvalidIdException("A question id can't be negative...");
             }
             return null;
         }
@@ -104,6 +113,13 @@ namespace USherbrooke.ServiceModel.Sondage
         {
             // Vérification d'un poll ID valide
             IList<PollQuestion> questions;
+
+            if (userId < 0)
+                throw new InvalidIdException("Received user id is invalid...");
+
+            if (availablePolls == null)
+                throw new PersistenceException("Unable to return an initialized poll list...");
+
             if (!availablePolls.TryGetValue(question.PollId, out questions)) {
 
                 throw new InvalidIdException(question.PollId.ToString(), "Invalid poll ID!");
@@ -111,10 +127,16 @@ namespace USherbrooke.ServiceModel.Sondage
 
             // S'il existe déjà des réponses pour ce sondage, on vérifie si l'utilisateur courant y a déjà répondu
             IDictionary<int, IList<PollQuestion>> pollAnswers;
+            if (answeredPolls == null)
+                throw new PersistenceException("Unable to fetch answered polls...");
+
             if (answeredPolls.TryGetValue(question.PollId, out pollAnswers))
             {
                 // S'il existe déjà des réponses pour cet usager, on vérifie s'il a déjà répondu à cette question en particulier
                 IList<PollQuestion> answersByUser;
+                if (pollAnswers == null)
+                    throw new PersistenceException("Unable to fetch poll answers...");
+
                 if (pollAnswers.TryGetValue(userId, out answersByUser))
                 {
                     int deleteIndex = -1;
@@ -163,6 +185,9 @@ namespace USherbrooke.ServiceModel.Sondage
         public List<int> GetAvailableQuestions(int pollId)
         {
             List<int> questionIds = new List<int>();
+            if (pollId < 0)
+                throw new InvalidIdException("Received poll id is invalid...");
+
             foreach (PollQuestion pq in availablePolls[pollId])
             {
                 questionIds.Add(pq.QuestionId);
