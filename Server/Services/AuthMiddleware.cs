@@ -32,7 +32,7 @@ namespace Server.Services
         {
             try
             {
-                if(this.Request.Headers["ApiKey"] == API_KEY)
+                if(this.Request.Headers["Authorization"] == API_KEY)
                 {
                     return Task.FromResult(
                         AuthenticateResult.Success(

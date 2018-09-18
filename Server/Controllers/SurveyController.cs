@@ -71,7 +71,7 @@ namespace Server.Controllers
             if (userId <= 0)
                 return BadRequest("Provided User ID is invalid.");
 
-            if (answer != null && answer.PollId >= 0 && answer.QuestionId >= 0 && !String.IsNullOrWhiteSpace(answer.Text))
+            if (answer != null && answer.PollId >= 0 && answer.QuestionId >= -1 && !String.IsNullOrWhiteSpace(answer.Text))
             {
                 var nextQuestion = _sondageServices.GetNext(userId, answer);
                 if (nextQuestion != null)

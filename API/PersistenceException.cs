@@ -10,7 +10,7 @@ namespace USherbrooke.ServiceModel.Sondage
     /// Cette exception est lancée lorsqu'une transaction avec le médium de stockage permanent (base de données, par exemple) a échoué.
     /// </summary>
     [Serializable()]
-    class PersistenceException : Exception
+    public class PersistenceException : Exception
     {
         public PersistenceException() : base()
         {
