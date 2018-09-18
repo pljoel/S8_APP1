@@ -32,13 +32,8 @@ namespace Client
 
         static HttpClient httpClient = new HttpClient();
         const string API_KEY = "A2D3-HTDG-MLU2-3AM5";
-        static Auth auth = new Auth
-        {
-            username = "admin",
-            password = "admin"
-        };
 
-        static async Task<int> ConnectAsync()
+        static async Task<int> ConnectAsync(Auth auth)
         {
             int result = 0;
 
@@ -47,8 +42,11 @@ namespace Client
             if (response.IsSuccessStatusCode)
             {
                 result = await response.Content.ReadAsAsync<int>();
+            } else
+            {
+                Console.WriteLine(response.ReasonPhrase);
             }
-            
+
             return result;
         }
 
@@ -64,6 +62,9 @@ namespace Client
             if (response.IsSuccessStatusCode)
             {
                 result = await response.Content.ReadAsAsync<IList<Poll>>();
+            } else
+            {
+                Console.WriteLine(response.ReasonPhrase);
             }
 
             return result;
@@ -82,6 +83,9 @@ namespace Client
             if (response.IsSuccessStatusCode)
             {
                 result = await response.Content.ReadAsAsync<PollQuestion>();
+            } else
+            {
+                Console.WriteLine(response.ReasonPhrase);
             }
 
             return result;
@@ -91,6 +95,36 @@ namespace Client
         {
             RunAsync().GetAwaiter().GetResult();
 
+            Console.WriteLine("Exiting... Press any key to close.");
+            Console.ReadLine();
+            return;
+        }
+
+        static Auth _login()
+        {
+            String user;
+            String pass;
+            Console.WriteLine("Username : ");
+            user = Console.ReadLine();
+            while (user.Length <= 0)
+            {
+                Console.WriteLine("Please enter a valid username : ");
+                user = Console.ReadLine();
+            }
+
+            Console.WriteLine("Password : ");
+            pass = Console.ReadLine();
+            while (pass.Length <= 0)
+            {
+                Console.WriteLine("Please enter a valid password : ");
+                pass = Console.ReadLine();
+            }
+
+            return new Auth
+            {
+                username = user,
+                password = pass
+            };
         }
 
         static async Task RunAsync()
@@ -107,14 +141,22 @@ namespace Client
 
             try
             {
-               int  userID = await ConnectAsync();
-                Console.WriteLine("Connected! UserID : " + userID);
+                int userID = 0;
+                int loginTry = 0;
 
-                if(userID < 0)
+               while (userID <= 0 && loginTry < 3)
                 {
-                    Console.WriteLine("Authentification failed!");
+                    userID = await ConnectAsync(_login());
+                    loginTry++;
+                }
+
+               if (loginTry >= 3)
+                {
+                    Console.WriteLine("Authentification failed !");
                     return;
                 }
+
+                Console.WriteLine("Connected! UserID : " + userID);
 
                 IList<Poll> sondages = await GetPolls(userID);
 
@@ -173,9 +215,8 @@ namespace Client
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+                return;
             }
-
-            Console.WriteLine("Hello World!");
         }
     }
 }
