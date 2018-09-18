@@ -20,6 +20,13 @@ namespace Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            // Middleware pour la cle API
+            services.AddAuthentication(o =>
+            {
+                o.DefaultScheme = "S8APP1Scheme";
+            }).AddCustomAuthentication("S8APP1Scheme", "Scheme pour la cle API de S8-App1", o => { });
+
             services.AddSingleton<ISondageService, SondageService>();
         }
 
@@ -36,6 +43,7 @@ namespace Server
             }
             
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseMvc();
         }
     }

@@ -16,6 +16,7 @@ namespace Server.Controllers
           
     }
     [Route("api")]
+    [Authorize]
     [ApiController]
     public class SurveyController : ControllerBase
     {
