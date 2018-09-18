@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using USherbrooke.ServiceModel.Sondage;
@@ -17,8 +18,20 @@ namespace Client
     class Program
     {
 
+        static bool _validateEntry(String entry)
+        {
+            Regex regex = new Regex("a|b|c|d", RegexOptions.Compiled);
+            if (entry.Length == 1) // since we accept only a,b,c or d
+            {
+                if (regex.Match(entry).Success)
+                    return true;
+            }
+            return false;
+
+        }
+
         static HttpClient httpClient = new HttpClient();
-        const string API_KEY = "A2D3-HTDG-MLU2-3AM5"; // Need to generate a new one
+        const string API_KEY = "A2D3-HTDG-MLU2-3AM5";
         static Auth auth = new Auth
         {
             username = "admin",
@@ -88,11 +101,10 @@ namespace Client
             Console.WriteLine("Hi, tying to connect to the server...");
 
             httpClient.BaseAddress = new Uri("https://localhost:44364/");
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("ApiKey", API_KEY);
+            httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(API_KEY);
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // Need to check connection
             try
             {
                int  userID = await ConnectAsync();
@@ -132,7 +144,8 @@ namespace Client
                     PollQuestion question = new PollQuestion
                     {
                         PollId = desiredPoll,
-                        QuestionId = -1
+                        QuestionId = -1,
+                        Text = "GetFirstQuestion"
                     };
 
                     question = await GetQuestion(userID, question);
@@ -140,7 +153,15 @@ namespace Client
                     while (question != null)
                     {
                         Console.WriteLine("{0} - {1}", question.QuestionId, question.Text);
-                        question.Text = Console.ReadLine();
+                   
+                        String answer = Console.ReadLine();
+                        while (!_validateEntry(answer))
+                        {
+                            Console.WriteLine("Wrong entry, please try again.");
+                            Console.WriteLine("{0} - {1}", question.QuestionId, question.Text);
+                            answer = Console.ReadLine();
+                        }
+                        question.Text = answer;
                         question = await GetQuestion(userID, question);
                     }
 
@@ -148,13 +169,11 @@ namespace Client
                     Console.WriteLine("Enter yes to exit or no to continue.");
                     exit = Console.ReadLine();
                 }
-
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
-            
 
             Console.WriteLine("Hello World!");
         }
