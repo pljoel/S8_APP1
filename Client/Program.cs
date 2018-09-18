@@ -111,37 +111,46 @@ namespace Client
                     Console.WriteLine("No polls available");
                     return;
                 }
+                String exit = "no";
 
-                Console.WriteLine("Available polls ({0}): ", sondages.Count);
-                for (int i = 0; i < sondages.Count; i++)
+                while (exit != "yes")
                 {
-                    Console.WriteLine("{0}- {1}", sondages[i].Id, sondages[i].Description);
-                }
+                    Console.WriteLine("Available polls ({0}): ", sondages.Count);
+                    for (int i = 0; i < sondages.Count; i++)
+                    {
+                        Console.WriteLine("{0}- {1}", sondages[i].Id, sondages[i].Description);
+                    }
 
-                Console.WriteLine("Please enter number of the desired poll.");
-                int desiredPoll = Int32.Parse(Console.ReadLine());
-                while (desiredPoll < sondages[0].Id || desiredPoll > sondages[sondages.Count - 1].Id)
-                {
-                    Console.WriteLine("Please enter the valid number of the desired poll.");
-                    desiredPoll = Int32.Parse(Console.ReadLine());
-                }
+                    Console.WriteLine("Please enter number of the desired poll.");
+                    int desiredPoll = Int32.Parse(Console.ReadLine());
+                    while (desiredPoll < sondages[0].Id || desiredPoll > sondages[sondages.Count - 1].Id)
+                    {
+                        Console.WriteLine("Please enter the valid number of the desired poll.");
+                        desiredPoll = Int32.Parse(Console.ReadLine());
+                    }
 
-                PollQuestion question = new PollQuestion
-                {
-                    PollId = desiredPoll,
-                    QuestionId = -1
-                };
+                    PollQuestion question = new PollQuestion
+                    {
+                        PollId = desiredPoll,
+                        QuestionId = -1
+                    };
 
-                question = await GetQuestion(userID, question);
-
-                while(question != null)
-                {
-                    Console.WriteLine("{0} - {1}", question.QuestionId, question.Text);
-                    question.Text = Console.ReadLine();
                     question = await GetQuestion(userID, question);
+
+                    while (question != null)
+                    {
+                        Console.WriteLine("{0} - {1}", question.QuestionId, question.Text);
+                        question.Text = Console.ReadLine();
+                        question = await GetQuestion(userID, question);
+                    }
+
+                    Console.WriteLine("Thanks for completing this poll!");
+                    Console.WriteLine("Enter yes to exit or no to continue.");
+                    exit = Console.ReadLine();
                 }
 
-                Console.WriteLine("Thanks for completing this poll!");
+
+                
 
 
 
