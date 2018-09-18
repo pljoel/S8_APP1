@@ -88,7 +88,7 @@ namespace Client
             Console.WriteLine("Hi, tying to connect to the server...");
 
             httpClient.BaseAddress = new Uri("https://localhost:44364/");
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", API_KEY);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("ApiKey", API_KEY);
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -148,11 +148,6 @@ namespace Client
                     Console.WriteLine("Enter yes to exit or no to continue.");
                     exit = Console.ReadLine();
                 }
-
-
-                
-
-
 
             }
             catch (Exception e)
